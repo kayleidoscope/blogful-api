@@ -6,6 +6,8 @@ const helmet = require('helmet')
 const { NODE_ENV } = require('./config')
 const { restart } = require('nodemon')
 const articlesRouter = require('./articles/articles-router')
+const usersRouter = require('./users/users-router')
+const commentsRouter = require('./comments/comments-router')
 
 const app = express()
 
@@ -18,6 +20,8 @@ app.use(helmet())
 app.use(cors())
 
 app.use('/api/articles', articlesRouter)
+app.use('/api/users', usersRouter)
+app.use('/api/comments', commentsRouter)
 
 app.get('/', (req, res) => {
     res.send('Hello, world!')

@@ -6,6 +6,15 @@ const ArticlesService = require('./articles-service')
 const articlesRouter = express.Router()
 const jsonParser = express.json()
 
+const serializeArticle = article => ({
+  id: article.id,
+  style: article.style,
+  title: xss(article.title),
+  content: xss(article.content),
+  date_published: article.date_published,
+  author: article.author
+})
+
 articlesRouter
   .route('/')
   .get((req, res, next) => {
@@ -13,12 +22,12 @@ articlesRouter
       req.app.get('db')
     )
       .then(articles => {
-        res.json(articles)
+        res.json(articles.map(serializeArticle))
       })
       .catch(next)
   })
   .post(jsonParser, (req, res, next) => {
-    const { title, content, style } = req.body
+    const { title, content, style, author } = req.body
     const newArticle = { title, content, style }
     const articleProperties = Object.entries(newArticle)
 
@@ -30,6 +39,8 @@ articlesRouter
         }
     }
 
+    newArticle.author = author;
+
     ArticlesService.insertArticle(
       req.app.get('db'),
       newArticle
@@ -38,7 +49,7 @@ articlesRouter
         res
           .status(201)
           .location(path.posix.join(req.originalUrl, `/${article.id}`))
-          .json(article)
+          .json(serializeArticle(article))
       })
       .catch(next)
   })
@@ -68,6 +79,7 @@ articlesRouter
       title: xss(res.article.title), //sanitize title
       content: xss(res.article.content), //sanitize content
       date_published: res.article.date_published,
+      author: res.article.author
     })
   })
   .delete((req, res, next) => {
